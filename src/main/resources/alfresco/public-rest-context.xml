@@ -66,6 +66,7 @@
         <property name="tempDirectoryName" value="${webscripts.tempDirectoryName}"/>
         <property name="memoryThreshold" value="${webscripts.memoryThreshold}"/>
         <property name="maxContentSize" value="${webscripts.setMaxContentSize}"/>
+        <property name="preserveHeadersPattern" value="${webscripts.transaction.preserveHeadersPattern}"/>
     </bean>
    
     <!--  Public Api Authenticator -->
@@ -648,6 +649,7 @@
         <property name="nodes" ref="Nodes" />
         <property name="siteService" ref="SiteService" />
         <property name="favouritesService" ref="FavouritesService" />
+        <property name="namespaceService" ref="NamespaceService" />
     </bean>
 
     <bean id="Favourites" class="org.springframework.aop.framework.ProxyFactoryBean">

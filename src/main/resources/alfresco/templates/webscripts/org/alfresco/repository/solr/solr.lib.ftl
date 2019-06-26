@@ -1,5 +1,6 @@
 <#macro json_string string>${string?js_string?replace("\\'", "\'")?replace("\\>", ">")}</#macro>
 
+
 <#macro aclChangeSetJSON aclChangeSet>
       {
          "id": ${aclChangeSet.id?c},
@@ -54,6 +55,7 @@
          "status": "<#if node.deleted>d<#else>u</#if>",
          <#if node.aclId??>"aclId": ${node.aclId?c},</#if>
          <#if node.shardPropertyValue??>"shardPropertyValue": "${node.shardPropertyValue?string}",</#if>
+         <#if node.explicitShardId??>"explicitShardId": "${node.explicitShardId?c}",</#if>
          "tenant": "${node.tenant}"
       }
 </#macro>
@@ -118,7 +120,7 @@
          <#if (nodeMetaData.parentAssocs?size > 0)>
          , "parentAssocs": [
            <#list nodeMetaData.parentAssocs as pa>
-           "<@json_string "${pa}"/>"<#if pa_has_next>,</#if>
+           ${pa}<#if pa_has_next>,</#if>
            </#list>
          ]
          ,"parentAssocsCrc": <#if nodeMetaData.parentAssocsCrc??>${nodeMetaData.parentAssocsCrc?c}<#else>null</#if>
@@ -130,7 +132,7 @@
          <#if (nodeMetaData.childAssocs?size > 0)>
          , "childAssocs": [
            <#list nodeMetaData.childAssocs as ca>
-           "<@json_string "${ca}"/>"<#if ca_has_next>,</#if>
+           ${ca}<#if ca_has_next>,</#if>
            </#list>
          ]
          </#if>
@@ -166,6 +168,7 @@ ${indent}]
 <#macro qNameJSON qName indent="">
 ${indent}"${jsonUtils.encodeJSONString(shortQName(qName))}"
 </#macro>
+
 
 <#macro nodePropertyJSON propQName propValue>
 <@qNameJSON qName=propQName/>: <#if propValue??>"propValue"<#else>null</#if>

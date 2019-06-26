@@ -164,7 +164,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.ConcurrencyFailureException;
@@ -2870,7 +2870,7 @@ public class NodesImpl implements Nodes
         Map<String, Object> qnameStrProps = new HashMap<>();
         Map<QName, Serializable> properties = null;
         Map<String, String[]> formDataParameters = formData.getParameters();
-        
+
         for (FormData.FormField field : formData.getFields())
         {
             switch (field.getName().toLowerCase())
@@ -2929,9 +2929,12 @@ public class NodesImpl implements Nodes
                     if (propName.indexOf(QName.NAMESPACE_PREFIX) > -1 && !qnameStrProps.containsKey(propName))
                     {
                         String[] fieldValue = formDataParameters.get(propName);
-                        if(fieldValue.length > 1) {
+                        if (fieldValue.length > 1)
+                        {
                             qnameStrProps.put(propName, Arrays.asList(fieldValue));
-                        } else {
+                        }
+                        else
+                        {
                             qnameStrProps.put(propName, fieldValue[0]);
                         }
                     }

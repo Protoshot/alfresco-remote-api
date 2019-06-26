@@ -93,6 +93,7 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.site.SiteVisibility;
 import org.alfresco.util.GUID;
 import org.alfresco.util.TempFileProvider;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -5198,7 +5199,153 @@ public class NodeApiTest extends AbstractSingleNetworkSiteTest
         assertNull("Permissions were inherited from parent!", nodeResp.getPermissions().getInherited());
 
     }
+    
+    @Test
+    public void createContentWithAllParametersAccepted() throws Exception
+    {
+        setRequestContext(user1);
 
+        // Let's start with creating a folder in our home folder.
+        String folderName = "My Folder" + GUID.generate();
+        // -my- (eg. User's Home for on-prem)
+        String myNodeId = getMyNodeId();
+        Folder folder = new Folder();
+        folder.setName(folderName);
+        folder.setNodeType(TYPE_CM_FOLDER);
+        HttpResponse response = post(getNodeChildrenUrl(myNodeId), toJsonAsStringNonNull(folder), 201);
+        Folder folderResponse = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Folder.class);
+        // Check the upload response
+        assertEquals(folderName, folderResponse.getName());
+        assertEquals(TYPE_CM_FOLDER, folderResponse.getNodeType());
+
+        // Let's now create an empty file within our home folder.
+        String fileName = "myfile" + GUID.generate() + ".txt";
+        Document document = new Document();
+        document.setName(fileName);
+        document.setNodeType(TYPE_CM_CONTENT);
+        response = post(getNodeChildrenUrl(myNodeId), toJsonAsStringNonNull(document), 201);
+        Document documentResponse = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Document.class);
+        // Check the upload response
+        assertEquals(fileName, documentResponse.getName());
+        assertEquals(TYPE_CM_CONTENT, documentResponse.getNodeType());
+
+        // multipart/form-data upload with known parameters
+        /*
+         * case "name": case "filedata": case "autorename": case "nodetype":
+         * case "overwrite": case "majorversion": case "comment": case
+         * "relativepath": case "renditions":
+         */
+        fileName = "quick-2.pdf";
+        File file = getResourceFile(fileName);
+
+        MultiPartBuilder multiPartBuilder = MultiPartBuilder.create().setFileData(new FileData(fileName, file));
+        multiPartBuilder.setAutoRename(true);
+        multiPartBuilder.setNodeType(TYPE_CM_CONTENT);
+        multiPartBuilder.setOverwrite(false);
+        multiPartBuilder.setMajorVersion(true);
+        multiPartBuilder.setDescription("test");
+        // multiPartBuilder.setRelativePath("/");
+        multiPartBuilder.setRenditions(Collections.singletonList("doclib"));
+        MultiPartRequest reqBody = multiPartBuilder.build();
+        response = post(getNodeChildrenUrl(myNodeId), reqBody.getBody(), null, reqBody.getContentType(), 201);
+        document = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Document.class);
+
+        ContentInfo contentInfo = document.getContent();
+        assertEquals(MimetypeMap.MIMETYPE_PDF, contentInfo.getMimeType());
+        assertEquals("UTF-8", contentInfo.getEncoding());
+
+        // multipart/form-data upload with unknown parameters
+        /*
+         * 
+         * setPropeties custom
+         */
+
+        document.setNodeType("custom:destination");
+        multiPartBuilder = MultiPartBuilder.create().setFileData(new FileData(fileName, file));
+        multiPartBuilder.setAutoRename(true);
+        multiPartBuilder.setNodeType("custom:destination");
+        Map<String, String> props = new MultiValueMap();
+        props.put("cm:title", "test title");
+        props.put("custom:locations", "loc1");
+        props.put("custom:locations", "loc2");
+        props.put("custom:locations", "loc3");
+        multiPartBuilder.setProperties(props);
+
+        reqBody = multiPartBuilder.build();
+        response = post(getNodeChildrenUrl(myNodeId), reqBody.getBody(), null, reqBody.getContentType(), 201);
+        document = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Document.class);
+
+        contentInfo = document.getContent();
+        assertEquals(MimetypeMap.MIMETYPE_PDF, contentInfo.getMimeType());
+        assertEquals("UTF-8", contentInfo.getEncoding());
+
+    }
+    
+    @Test
+    public void updatePropertiesMultivalueTest() throws Exception
+    {
+        setRequestContext(user1);
+        
+        String myNodeId = getMyNodeId();
+        // create a multiple-value field from multipart\formdata
+        String fileName = "myfile" + GUID.generate() + ".txt";
+        File file = getResourceFile("quick-2.pdf");
+        MultiPartBuilder multiPartBuilder = MultiPartBuilder.create().setFileData(new FileData(fileName, file));
+        multiPartBuilder.setAutoRename(true);
+        multiPartBuilder.setNodeType("custom:destination");
+        multiPartBuilder.setOverwrite(false);
+        multiPartBuilder.setMajorVersion(true);
+        multiPartBuilder.setDescription("test");
+        multiPartBuilder.setRenditions(Collections.singletonList("doclib"));
+        Map<String, String> props = new MultiValueMap();
+        props.put("cm:title", "test title");
+        props.put("custom:locations", "loc1");
+        props.put("custom:locations", "loc2");
+        props.put("custom:locations", "loc3");
+        multiPartBuilder.setProperties(props);
+
+        MultiPartRequest reqBody = multiPartBuilder.build();
+        HttpResponse response = post(getNodeChildrenUrl(myNodeId), reqBody.getBody(), null, reqBody.getContentType(), 201);
+        Document documentResponse = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Document.class);
+
+        //build the multiple-value as json array       
+        String jsonUpdate = "{" +
+         	         "\"name\":\"My Other Folder\","+
+         	         "\"nodeType\":\"custom:destination\"," +
+           	          "\"properties\":"+
+           	          "{" +
+           	          		"\"cm:title\":\"Folder title\","+
+           	          		"\"cm:description\":\"This is an important folder\"," +
+           	          		"\"custom:locations\":["+
+       	                                 "\"location X\","+
+       	                                 "\"location Y\""+
+       	                                 "]" +
+           	          "}" +
+         	      "}";
+         
+        response = put(URL_NODES, documentResponse.getId(), jsonUpdate, null, 200);
+
+        Node nodeUpdateResponse = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Node.class);
+        Map<String, Object> propUpdateResponse = nodeUpdateResponse.getProperties();
+        assertNotNull(propUpdateResponse.get("custom:locations"));
+        assertTrue(((ArrayList) (propUpdateResponse.get("custom:locations"))).size() == 2);
+
+        // build the multiple-value as array
+        Map<String, Object> properties = new HashMap();
+        List locations = new ArrayList<String>();
+        locations.add("location X1");
+        properties.put("custom:locations", locations);
+        Node nodeUpdate = new Node();
+        nodeUpdate.setProperties(properties);
+
+        response = put(URL_NODES, documentResponse.getId(), toJsonAsStringNonNull(nodeUpdate), null, 200);
+
+        nodeUpdateResponse = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Node.class);
+        propUpdateResponse = nodeUpdateResponse.getProperties();
+        assertNotNull(propUpdateResponse.get("custom:locations"));
+        assertTrue(((ArrayList) (propUpdateResponse.get("custom:locations"))).size() == 1);
+    }
+    
     private String getDataDictionaryNodeId() throws Exception
     {
         Map params = new HashMap<>();

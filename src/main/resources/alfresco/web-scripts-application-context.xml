@@ -175,6 +175,7 @@
       <property name="tempDirectoryName" value="${webscripts.tempDirectoryName}"/>
       <property name="memoryThreshold" value="${webscripts.memoryThreshold}"/>
       <property name="maxContentSize" value="${webscripts.setMaxContentSize}"/>
+      <property name="preserveHeadersPattern" value="${webscripts.transaction.preserveHeadersPattern}"/>
    </bean>
 
    <bean id="webscripts.index.prototype" class="org.springframework.extensions.webscripts.JaxRSUriIndex" scope="prototype"/>
@@ -889,13 +890,6 @@
           class="org.alfresco.repo.web.scripts.archive.ArchivedNodesDelete"
           parent="baseArchivedNodeWebScript">
     </bean>
-    
-    
-    <!--                              -->
-    <!--      BlogService REST API    -->
-    <!--                              -->
-    <import resource="blogs/web-scripts-blog-context.xml"/>
-    
     
     <!--                                   -->
     <!--      Workflow Service REST API    -->

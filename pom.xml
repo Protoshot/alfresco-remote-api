@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-remote-api</artifactId>
     <name>Alfresco Remote API</name>
-    <version>7.48-SNAPSHOT</version>
+    <version>7.61-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -35,17 +35,18 @@
         <dir.root>${project.build.directory}/alf_data</dir.root>
         <img.exe>convert</img.exe>
 
-        <dependency.alfresco-repository.version>7.55</dependency.alfresco-repository.version>
-        <dependency.alfresco-core.version>7.9</dependency.alfresco-core.version>
-        <dependency.alfresco-data-model.version>8.28</dependency.alfresco-data-model.version>
-        <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
-        <dependency.jackson.version>2.9.8</dependency.jackson.version>
+        <dependency.alfresco-repository.version>7.74</dependency.alfresco-repository.version>
+        <dependency.alfresco-core.version>7.17</dependency.alfresco-core.version>
+        <dependency.alfresco-data-model.version>8.41</dependency.alfresco-data-model.version>
 
-        <dependency.webscripts.version>6.21</dependency.webscripts.version>
+        <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
+        <dependency.jackson.version>2.9.9</dependency.jackson.version>
+
+        <dependency.webscripts.version>7.2</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
-        <dependency.spring.version>5.1.5.RELEASE</dependency.spring.version>
-        <dependency.postgresql.version>42.2.5</dependency.postgresql.version>
-        <dependency.cxf.version>3.3.1</dependency.cxf.version>
+        <dependency.spring.version>5.1.8.RELEASE</dependency.spring.version>
+        <dependency.postgresql.version>42.2.6</dependency.postgresql.version>
+        <dependency.cxf.version>3.3.2</dependency.cxf.version>
     </properties>
 
     <dependencyManagement>
@@ -58,6 +59,16 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${dependency.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-client</artifactId>
+                <version>${dependency.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-transports-http</artifactId>
                 <version>${dependency.cxf.version}</version>
             </dependency>
@@ -65,6 +76,24 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-ws-policy</artifactId>
                 <version>${dependency.cxf.version}</version>
+            </dependency>
+            <!-- upgrade dependency from TIKA -->
+            <dependency>
+                <groupId>com.github.junrar</groupId>
+                <artifactId>junrar</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+            <!-- upgrade dependency from TIKA -->
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>1.12.1</version>
+            </dependency>
+            <!-- update dependency from opencmis-extension -->
+            <dependency>
+                <groupId>commons-httpclient</groupId>
+                <artifactId>commons-httpclient</artifactId>
+                <version>3.1-HTTPCLIENT-1265</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -154,7 +183,7 @@
         <dependency>
             <groupId>com.rometools</groupId>
             <artifactId>rome</artifactId>
-            <version>1.12.0</version>
+            <version>1.12.1</version>
         </dependency>
 
         <!-- This is needed at runtime by Web Client, so not really a test dependency -->
@@ -392,7 +421,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>license-maven-plugin</artifactId>
-                    <version>1.19</version>
+                    <version>1.20</version>
                 </plugin>
             </plugins>
         </pluginManagement>
